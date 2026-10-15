@@ -42,7 +42,11 @@ class FeedClient:
     @classmethod
     def from_env(cls, **kwargs):
         """Crea el cliente con FEED_API_URL y FEED_API_TOKEN."""
-        return cls(os.environ.get("FEED_API_URL"), os.environ.get("FEED_API_TOKEN"), **kwargs)
+        url = os.environ.get("FEED_API_URL")
+        token = os.environ.get("FEED_API_TOKEN")
+        if not url or not token:
+            raise ValueError("Faltan FEED_API_URL y/o FEED_API_TOKEN en el entorno")
+        return cls(url, token, **kwargs)
 
     def _error(self, resp):
         try:
