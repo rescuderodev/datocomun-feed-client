@@ -46,4 +46,4 @@ with FeedClient.from_env() as feed:
 | `GET /v1/resultados/congreso/{circ}` | `resultados_congreso(circunscripcion)` |
 | `GET /v1/resultados/senado/{circ}` | `resultados_senado(circunscripcion)` |
 
-`circunscripcion`: código INE de dos digitos de la provinica (`"28"`).
+`circunscripcion`: código INE de dos digitos de la provincia (`"28"`).
