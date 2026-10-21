@@ -3,6 +3,8 @@ import os
 
 import httpx
 
+from .models import Circunscripcion
+
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 10.0
@@ -20,6 +22,10 @@ class FeedError(Exception):
 
 class AuthError(FeedError):
     """401: token ausente, caducado o de otro entorno."""
+
+
+class NoEncontrado(FeedError):
+    """404: convocatoria o circunscripcion inexistente."""
 
 
 class FeedClient:
@@ -56,6 +62,8 @@ class FeedClient:
             error, detalle = "", resp.text[:200]
         if resp.status_code == 401:
             return AuthError(401, error or "no_autorizado", detalle)
+        if resp.status_code == 404:
+            return NoEncontrado(404, error or "no_encontrado", detalle)
         return FeedError(resp.status_code, error, detalle)
 
     def _get(self, path, params=None):
@@ -68,6 +76,19 @@ class FeedClient:
     def estado(self):
         """Version, entorno y hora del servidor (no necesita token)."""
         return self._get("/estado").json()
+
+    def participacion(self, hora="18:00"):
+        """Avance de participacion: "14:00" o "18:00"."""
+        # TODO: cachear? cambia dos veces en toda la noche
+        return self._get("/participacion", {"hora": hora}).json()
+
+    def resultados_congreso(self, circunscripcion):
+        """Resultados al Congreso. circunscripcion: codigo INE de dos digitos ("28")."""
+        return Circunscripcion.from_dict(self._get(f"/resultados/congreso/{circunscripcion}").json())
+
+    def resultados_senado(self, circunscripcion):
+        # de momento sin modelo, nadie lo usa para grafismo
+        return self._get(f"/resultados/senado/{circunscripcion}").json()
 
     def close(self):
         self._http.close()

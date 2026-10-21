@@ -31,4 +31,19 @@ from datocomun_feed import FeedClient
 
 with FeedClient.from_env() as feed:
     print(feed.estado())
+
+    madrid = feed.resultados_congreso("28")
+    for c in madrid.candidaturas:
+        print(c.siglas, c.votos, c.pct, c.escanos)
 ```
+
+## Endpoints
+
+| Endpoint | Método del cliente |
+| --- | --- |
+| `GET /v1/estado` | `estado()` |
+| `GET /v1/participacion?hora=` | `participacion(hora)` |
+| `GET /v1/resultados/congreso/{circ}` | `resultados_congreso(circunscripcion)` |
+| `GET /v1/resultados/senado/{circ}` | `resultados_senado(circunscripcion)` |
+
+`circunscripcion`: código INE de dos digitos de la provinica (`"28"`).
