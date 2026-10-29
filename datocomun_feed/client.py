@@ -1,5 +1,7 @@
 import logging
 import os
+import random
+import time
 
 import httpx
 
@@ -8,6 +10,11 @@ from .models import Circunscripcion
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 10.0
+MAX_REINTENTOS = 4
+BACKOFF_BASE = 0.5
+BACKOFF_MAX = 8.0
+# 503 = la fuente oficial aun no tiene datos nuevos, merece la pena reintentar
+REINTENTABLES = {429, 500, 502, 503, 504}
 
 
 class FeedError(Exception):
@@ -31,10 +38,20 @@ class NoEncontrado(FeedError):
 class FeedClient:
     """Cliente de Recuento API. Autentica con el token del entorno (PRE o PRO)."""
 
-    def __init__(self, base_url, token, timeout=DEFAULT_TIMEOUT, transport=None):
+    def __init__(
+        self,
+        base_url,
+        token,
+        timeout=DEFAULT_TIMEOUT,
+        max_reintentos=MAX_REINTENTOS,
+        backoff_base=BACKOFF_BASE,
+        transport=None,
+    ):
         if not token:
             raise ValueError("Falta el token de la API")
         self.base_url = base_url.rstrip("/")
+        self.max_reintentos = max_reintentos
+        self.backoff_base = backoff_base
         self._http = httpx.Client(
             base_url=self.base_url,
             timeout=timeout,
@@ -66,9 +83,38 @@ class FeedClient:
             return NoEncontrado(404, error or "no_encontrado", detalle)
         return FeedError(resp.status_code, error, detalle)
 
+    def _espera(self, intento, resp=None):
+        """Segundos antes del siguiente intento: Retry-After si viene, si no backoff con jitter."""
+        if resp is not None and "Retry-After" in resp.headers:
+            try:
+                return min(float(resp.headers["Retry-After"]), BACKOFF_MAX)
+            except ValueError:
+                pass  # a veces viene como fecha HTTP, pasamos
+        espera = min(self.backoff_base * (2 ** intento), BACKOFF_MAX)
+        return espera * random.uniform(0.5, 1.0)
+
     def _get(self, path, params=None):
-        log.debug("GET %s %s", path, params or "")
-        resp = self._http.get(path, params=params)
+        # en noche electoral hay picos fuertes, reintentamos 429/5xx y
+        # errores de red antes de dar el dato por perdido
+        for intento in range(self.max_reintentos + 1):
+            log.debug("GET %s %s (intento %d)", path, params or "", intento + 1)
+            try:
+                resp = self._http.get(path, params=params)
+            except httpx.TransportError as exc:
+                if intento == self.max_reintentos:
+                    raise
+                espera = self._espera(intento)
+                log.warning("Error de red en %s (%s), reintento en %.1fs", path, exc, espera)
+                time.sleep(espera)
+                continue
+
+            if resp.status_code in REINTENTABLES and intento < self.max_reintentos:
+                espera = self._espera(intento, resp)
+                log.warning("%s devolvio %d, reintento en %.1fs", path, resp.status_code, espera)
+                time.sleep(espera)
+                continue
+            break
+
         if resp.status_code >= 400:
             raise self._error(resp)
         return resp

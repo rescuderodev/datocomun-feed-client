@@ -47,3 +47,11 @@ with FeedClient.from_env() as feed:
 | `GET /v1/resultados/senado/{circ}` | `resultados_senado(circunscripcion)` |
 
 `circunscripcion`: código INE de dos digitos de la provincia (`"28"`).
+
+## Errores y reintentos
+
+`AuthError` (401), `NoEncontrado` (404) y `FeedError` para el resto.
+
+Con `429`, `5xx` (incluido el `503` de "fuente sin datos nuevos") o errores de
+red reintenta con backoff exponencial (4 reintentos por defecto) y respeta
+`Retry-After`. Se puede tocar con `max_reintentos` y `backoff_base`.
