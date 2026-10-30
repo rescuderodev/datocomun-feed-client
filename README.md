@@ -55,3 +55,10 @@ with FeedClient.from_env() as feed:
 Con `429`, `5xx` (incluido el `503` de "fuente sin datos nuevos") o errores de
 red reintenta con backoff exponencial (4 reintentos por defecto) y respeta
 `Retry-After`. Se puede tocar con `max_reintentos` y `backoff_base`.
+
+## Tests
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
