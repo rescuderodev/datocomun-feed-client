@@ -99,3 +99,17 @@ def test_resultados_congreso(feed):
     madrid = feed.resultados_congreso("28")
     assert [c.siglas for c in madrid.candidaturas] == ["A", "B"]
     assert madrid.cambio_escanos == 1
+
+
+@respx.mock
+def test_avance_escrutinio(feed):
+    ruta = respx.get(f"{URL}/escrutinio/avance").respond(json={
+        "convocatoria": "generales-2026-11-29", "camara": "senado", "tipo": "provisional",
+        "escrutado_pct": 63.41, "escanos_total": 208, "mayoria_absoluta": 105,
+        "candidaturas": [{"siglas": "A", "nombre": "A", "escanos": 120}, {"siglas": "B", "nombre": "B", "escanos": 88}],
+        "actualizado": "2026-11-18T22:15:00+01:00", "simulacro": True,
+    })
+    avance = feed.avance_escrutinio("senado")
+    assert ruta.calls.last.request.url.params["camara"] == "senado"
+    assert avance.lider().siglas == "A"
+    assert avance.actualizado.utcoffset().total_seconds() == 3600

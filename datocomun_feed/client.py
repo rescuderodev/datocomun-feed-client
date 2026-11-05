@@ -5,7 +5,7 @@ import time
 
 import httpx
 
-from .models import Circunscripcion
+from .models import Avance, Circunscripcion
 
 log = logging.getLogger(__name__)
 
@@ -123,6 +123,10 @@ class FeedClient:
         """Version, entorno y hora del servidor (no necesita token)."""
         return self._get("/estado").json()
 
+    def avance_escrutinio(self, camara="congreso"):
+        """Porcentaje escrutado y reparto provisional de escaños ("congreso" o "senado")."""
+        return Avance.from_dict(self._get("/escrutinio/avance", {"camara": camara}).json())
+
     def participacion(self, hora="18:00"):
         """Avance de participacion: "14:00" o "18:00"."""
         # TODO: cachear? cambia dos veces en toda la noche
@@ -135,6 +139,10 @@ class FeedClient:
     def resultados_senado(self, circunscripcion):
         # de momento sin modelo, nadie lo usa para grafismo
         return self._get(f"/resultados/senado/{circunscripcion}").json()
+
+    def municipio(self, ine):
+        """Resultados de un municipio (codigo INE de cinco digitos)."""
+        return self._get(f"/municipios/{ine}").json()
 
     def close(self):
         self._http.close()

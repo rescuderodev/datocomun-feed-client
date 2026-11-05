@@ -26,6 +26,36 @@ class Candidatura:
 
 
 @dataclass
+class Avance:
+    convocatoria: str
+    camara: str
+    tipo: str  # provisional | definitivo
+    escrutado_pct: float
+    escanos_total: int
+    mayoria_absoluta: int
+    candidaturas: list = field(default_factory=list)
+    actualizado: datetime | None = None
+    simulacro: bool = False
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(
+            convocatoria=d["convocatoria"],
+            camara=d["camara"],
+            tipo=d["tipo"],
+            escrutado_pct=d["escrutado_pct"],
+            escanos_total=d["escanos_total"],
+            mayoria_absoluta=d["mayoria_absoluta"],
+            candidaturas=[Candidatura.from_dict(c) for c in d.get("candidaturas", [])],
+            actualizado=_fecha(d.get("actualizado")),
+            simulacro=d.get("simulacro", False),
+        )
+
+    def lider(self):
+        return max(self.candidaturas, key=lambda c: c.escanos, default=None)
+
+
+@dataclass
 class Circunscripcion:
     codigo: str
     nombre: str

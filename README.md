@@ -1,6 +1,11 @@
 # datocomun-feed-client
 
-Cliente Python para Recuento API (Dato Común).
+Cliente Python oficial de Recuento API, el feed de Dato Común, para integrarlo
+en los sistemas de la redacción: avance del escrutinio, participación y
+resultados por circunscripción y municipio.
+
+Lo estamos usando para las generales del 29N. Hasta entonces las integraciones
+van contra PRE (datos de simulacro, candidaturas ficticias).
 
 > En desarrollo. La interfaz puede cambiar.
 
@@ -32,6 +37,9 @@ from datocomun_feed import FeedClient
 with FeedClient.from_env() as feed:
     print(feed.estado())
 
+    avance = feed.avance_escrutinio()  # camara="senado" para el Senado
+    print(avance.escrutado_pct, avance.lider())
+
     madrid = feed.resultados_congreso("28")
     for c in madrid.candidaturas:
         print(c.siglas, c.votos, c.pct, c.escanos)
@@ -42,9 +50,11 @@ with FeedClient.from_env() as feed:
 | Endpoint | Método del cliente |
 | --- | --- |
 | `GET /v1/estado` | `estado()` |
+| `GET /v1/escrutinio/avance?camara=` | `avance_escrutinio(camara)` |
 | `GET /v1/participacion?hora=` | `participacion(hora)` |
 | `GET /v1/resultados/congreso/{circ}` | `resultados_congreso(circunscripcion)` |
 | `GET /v1/resultados/senado/{circ}` | `resultados_senado(circunscripcion)` |
+| `GET /v1/municipios/{ine}` | `municipio(ine)` |
 
 `circunscripcion`: código INE de dos digitos de la provincia (`"28"`).
 
@@ -62,3 +72,7 @@ red reintenta con backoff exponencial (4 reintentos por defecto) y respeta
 pip install -e ".[dev]"
 pytest
 ```
+
+## Soporte
+
+Dudas e incidencias, através del portal de clientes.
