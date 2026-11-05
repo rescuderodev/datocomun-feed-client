@@ -58,6 +58,15 @@ with FeedClient.from_env() as feed:
 
 `circunscripcion`: código INE de dos digitos de la provincia (`"28"`).
 
+## Ejemplo: noche electoral
+
+`examples/noche_electoral.py` mira el avance cada 10 s y pinta el reparto
+cuando cambia:
+
+```bash
+python examples/noche_electoral.py --camara congreso
+```
+
 ## Errores y reintentos
 
 `AuthError` (401), `NoEncontrado` (404) y `FeedError` para el resto.
