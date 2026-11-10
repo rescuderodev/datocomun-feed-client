@@ -113,3 +113,11 @@ def test_avance_escrutinio(feed):
     assert ruta.calls.last.request.url.params["camara"] == "senado"
     assert avance.lider().siglas == "A"
     assert avance.actualizado.utcoffset().total_seconds() == 3600
+
+
+@respx.mock
+def test_export_a_fichero(feed, tmp_path):
+    respx.get(f"{URL}/export").respond(json={"convocatoria": "generales-2026-11-29"})
+    datos = feed.export(ruta=tmp_path / "export.json")
+    assert datos["convocatoria"] == "generales-2026-11-29"
+    assert (tmp_path / "export.json").read_text().startswith("{")

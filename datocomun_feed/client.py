@@ -144,6 +144,20 @@ class FeedClient:
         """Resultados de un municipio (codigo INE de cinco digitos)."""
         return self._get(f"/municipios/{ine}").json()
 
+    def export(self, formato="json", ruta=None):
+        """Exportacion completa de la convocatoria. OJO: solo existe en PRE.
+
+        Si se pasa `ruta`, guarda la respuesta tal cual en ese fichero.
+        """
+        resp = self._get("/export", {"formato": formato})
+        if ruta:
+            tmp = f"{ruta}.tmp"
+            with open(tmp, "wb") as f:
+                f.write(resp.content)
+            os.replace(tmp, ruta)
+            log.info("Export guardado en %s", ruta)
+        return resp.json() if formato == "json" else resp.text
+
     def close(self):
         self._http.close()
 

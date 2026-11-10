@@ -9,3 +9,7 @@ venv/
 *.egg-info/
 dist/
 build/
+
+# exports locales
+export*.json
+export*.csv

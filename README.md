@@ -55,8 +55,12 @@ with FeedClient.from_env() as feed:
 | `GET /v1/resultados/congreso/{circ}` | `resultados_congreso(circunscripcion)` |
 | `GET /v1/resultados/senado/{circ}` | `resultados_senado(circunscripcion)` |
 | `GET /v1/municipios/{ine}` | `municipio(ine)` |
+| `GET /v1/export?formato=` | `export(formato, ruta)` (**solo PRE**) |
 
 `circunscripcion`: código INE de dos digitos de la provincia (`"28"`).
+
+`/v1/export` solo existe en PRE. Devuelve todo de golpe, viene bien para
+preparar gráficos sin ir circunscripción a circunscripción.
 
 ## Ejemplo: noche electoral
 
