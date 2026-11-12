@@ -86,6 +86,18 @@ pip install -e ".[dev]"
 pytest
 ```
 
+Los de integración (`tests/test_integracion_pre.py`) van contra PRE y necesitan
+`FEED_API_URL` y `FEED_API_TOKEN`. Lo más cómodo es ponerlas en un `.env` en la
+raíz del repo:
+
+```
+FEED_ENV=pre
+FEED_API_URL=https://feed-pre.datocomun.com/v1
+FEED_API_TOKEN=...
+```
+
+Sin token esos tests se saltan.
+
 ## Soporte
 
 Dudas e incidencias, através del portal de clientes.
